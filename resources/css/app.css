@@ -1,0 +1,37 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+
+    --color-brand-50: #fff7ed;
+    --color-brand-100: #ffedd5;
+    --color-brand-200: #fdba74;
+    --color-brand-300: #fb923c;
+    --color-brand-400: #f97316;
+    --color-brand-500: #ea580c;
+    --color-brand-600: #c2410c;
+    --color-brand-700: #9a3412;
+    --color-brand-800: #7c2d12;
+    --color-brand-900: #451a03;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+.leaflet-container {
+    z-index: 0;
+    font-family: inherit;
+}
+
+.leaflet-popup-content-wrapper {
+    border-radius: 0.75rem;
+}
+
+.leaflet-popup-content {
+    margin: 0.875rem 1rem;
+}
