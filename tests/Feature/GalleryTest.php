@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Album;
+use App\Models\Photo;
 
 it('only lists published albums on the gallery page', function () {
     $published = Album::factory()->create([
@@ -50,4 +51,16 @@ it('shows a published album detail page', function () {
     $this->get(route('gallery.show', $album))
         ->assertOk()
         ->assertSee($album->title);
+});
+
+it('uses a same-origin URL for photos in the gallery', function () {
+    $album = Album::factory()->create(['status' => 'published']);
+    Photo::factory()->create([
+        'album_id' => $album->id,
+        'image_path' => 'photos/example.jpg',
+    ]);
+
+    $this->get(route('gallery.show', $album))
+        ->assertOk()
+        ->assertSee('src="/storage/photos/example.jpg"', false);
 });

@@ -65,7 +65,7 @@ Login menggunakan **username** (bukan email):
 ## Fitur
 
 - **Publik**: beranda, galeri album, pencarian & filter kategori, detail album, pratinjau foto, peta sekolah, halaman tentang.
-- **User (login)**: like/unlike, komentar (menunggu moderasi), laporan foto, pengelolaan profil.
+- **User (login)**: like/unlike, komentar yang langsung ditampilkan, laporan foto, pengelolaan profil.
 - **Admin**: dashboard statistik, CRUD album & foto, upload banyak foto, preview gambar, moderasi komentar, peninjauan laporan, manajemen pengguna, CRUD lokasi peta, pengaturan.
 
 ## Rute utama
@@ -114,6 +114,6 @@ Tes menggunakan SQLite in-memory dan `Storage::fake('public')`, sehingga tidak m
 - Login menggunakan username (bukan alamat email).
 - Role dan status pengguna diperiksa lewat middleware `admin` dan `active`.
 - Semua upload divalidasi (jenis, ekstensi, ukuran maksimal 99 MB; avatar 2 MB).
-- Komentar baru berstatus `pending` dan hanya tampil setelah disetujui admin.
+- Komentar baru langsung ditampilkan; admin tetap dapat menolak atau menghapus komentar.
 - Laporan foto dibatasi satu kali per user per foto.
 - Admin tidak dapat menonaktifkan atau menghapus akunnya sendiri.

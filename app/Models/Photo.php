@@ -27,11 +27,11 @@ class Photo extends Model
         return Attribute::get(function (): bool {
             $user = auth()->user();
 
-            if (! $user) {
-                return false;
+            if ($user) {
+                return $this->likes()->where('user_id', $user->id)->exists();
             }
 
-            return $this->likes()->where('user_id', $user->id)->exists();
+            return false;
         });
     }
 

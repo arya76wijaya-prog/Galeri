@@ -47,6 +47,7 @@ class AlbumController extends Controller
             'category' => $data['category'] ?? null,
             'created_by' => auth()->id(),
             'event_date' => $data['event_date'] ?? null,
+            'status' => $data['status'] ?? 'published',
         ]);
 
         if ($request->hasFile('cover_photo')) {
@@ -77,6 +78,7 @@ class AlbumController extends Controller
             'description' => $data['description'] ?? null,
             'category' => $data['category'] ?? null,
             'event_date' => $data['event_date'] ?? null,
+            'status' => $data['status'] ?? $album->status,
         ]);
         $album->save();
 
@@ -116,6 +118,7 @@ class AlbumController extends Controller
             'category' => ['nullable', Rule::in(config('gallery.categories'))],
             'cover_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:101376'],
             'event_date' => ['nullable', 'date'],
+            'status' => ['sometimes', Rule::in(['draft', 'published'])],
         ], [
             'title.required' => 'Judul album wajib diisi.',
             'cover_photo.image' => 'File cover harus berupa gambar.',

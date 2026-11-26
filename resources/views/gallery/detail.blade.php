@@ -108,14 +108,13 @@
                                             <li class="flex items-start justify-between gap-2">
                                                 <div class="min-w-0">
                                                     <p class="flex flex-wrap items-baseline gap-x-2 text-xs">
-                                                        <span class="font-semibold text-slate-800">{{ $comment->user->name }}</span>
+                                                        <span class="font-semibold text-slate-800">{{ $comment->user->name ?? 'Tamu' }}</span>
                                                         <span class="text-slate-400">{{ $comment->created_at->diffForHumans() }}</span>
                                                     </p>
                                                     <p class="mt-0.5 break-words text-xs leading-relaxed text-slate-600">{{ $comment->content }}</p>
                                                 </div>
 
-                                                @auth
-                                                    @if (auth()->id() === $comment->user_id || auth()->user()->isAdmin())
+                                                @if (auth()->id() === $comment->user_id || (session()->getId() === $comment->session_id && ! auth()->id()) || auth()->user()->isAdmin())
                                                         <form method="POST" action="{{ route('comments.destroy', $comment) }}" data-confirm="Hapus komentar ini?">
                                                             @csrf
                                                             @method('DELETE')
@@ -124,7 +123,6 @@
                                                             </button>
                                                         </form>
                                                     @endif
-                                                @endauth
                                             </li>
                                         @endforeach
                                     </ul>
@@ -132,51 +130,34 @@
 
                                 {{-- Actions --}}
                                 <div class="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-4">
-                                    @auth
-                                        <button type="button" data-like-url="{{ route('photos.like', $photo) }}" data-unlike-url="{{ route('photos.unlike', $photo) }}" data-liked="{{ $photo->liked_by_auth ? '1' : '0' }}" data-count-target="like-count-{{ $photo->id }}" data-busy="0" aria-pressed="{{ $photo->liked_by_auth ? 'true' : 'false' }}" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold transition hover:border-rose-300 hover:bg-rose-50">
-                                            <i data-lucide="heart" class="size-4 {{ $photo->liked_by_auth ? 'fill-current text-rose-600' : 'text-slate-500' }}"></i>
-                                            <span data-like-label>{{ $photo->liked_by_auth ? 'Suka' : 'Sukai' }}</span>
-                                        </button>
-                                    @else
-                                        <a href="{{ route('login') }}" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-500 transition hover:border-brand-300 hover:text-brand-700">
-                                            <i data-lucide="heart" class="size-3.5"></i>
-                                            Masuk untuk menyukai
-                                        </a>
-                                    @endauth
+                                    <button type="button" data-like-url="{{ route('photos.like', $photo) }}" data-unlike-url="{{ route('photos.unlike', $photo) }}" data-liked="{{ $photo->liked_by_auth ? '1' : '0' }}" data-count-target="like-count-{{ $photo->id }}" data-busy="0" aria-pressed="{{ $photo->liked_by_auth ? 'true' : 'false' }}" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold transition hover:border-rose-300 hover:bg-rose-50">
+                                        <i data-lucide="heart" class="size-4 {{ $photo->liked_by_auth ? 'fill-current text-rose-600' : 'text-slate-500' }}"></i>
+                                        <span data-like-label>{{ $photo->liked_by_auth ? 'Suka' : 'Sukai' }}</span>
+                                    </button>
 
-                                    @auth
-                                        <button type="button" data-open-modal="report-modal-{{ $photo->id }}" class="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-500 transition hover:bg-slate-100 hover:text-rose-600">
-                                            <i data-lucide="flag" class="size-3.5"></i>
-                                            Laporkan
-                                        </button>
-                                    @else
-                                        <a href="{{ route('login') }}" class="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-medium text-slate-400 transition hover:text-brand-700">
-                                            <i data-lucide="flag" class="size-3.5"></i>
-                                            Laporkan
-                                        </a>
-                                    @endauth
+                                    <button type="button" data-open-modal="report-modal-{{ $photo->id }}" class="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-500 transition hover:bg-slate-100 hover:text-rose-600">
+                                        <i data-lucide="flag" class="size-3.5"></i>
+                                        Laporkan
+                                    </button>
                                 </div>
 
                                 {{-- Comment form --}}
-                                @auth
-                                    <form method="POST" action="{{ route('comments.store', $photo) }}" class="mt-4 space-y-2">
-                                        @csrf
-                                        <label for="comment-{{ $photo->id }}" class="sr-only">Tulis komentar</label>
-                                        <textarea id="comment-{{ $photo->id }}" name="content" rows="2" required maxlength="1000" placeholder="Tulis komentar..." class="w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100">{{ old('content') }}</textarea>
-                                        <div class="flex flex-wrap items-center justify-between gap-2">
-                                            <button type="submit" class="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-brand-700">
-                                                <i data-lucide="send" class="size-3.5"></i>
-                                                Kirim komentar
-                                            </button>
-                                            <p class="text-[11px] text-slate-400">Komentar menunggu moderasi admin.</p>
-                                        </div>
-                                    </form>
-                                @endauth
+                                <form method="POST" action="{{ route('comments.store', $photo) }}" class="mt-4 space-y-2">
+                                    @csrf
+                                    <label for="comment-{{ $photo->id }}" class="sr-only">Tulis komentar</label>
+                                    <textarea id="comment-{{ $photo->id }}" name="content" rows="2" required maxlength="1000" placeholder="Tulis komentar..." class="w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100">{{ old('content') }}</textarea>
+                                    <div class="flex flex-wrap items-center justify-between gap-2">
+                                        <button type="submit" class="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-brand-700">
+                                            <i data-lucide="send" class="size-3.5"></i>
+                                            Kirim komentar
+                                        </button>
+                                        <p class="text-[11px] text-slate-400">Komentar akan langsung terlihat oleh pengunjung.</p>
+                                    </div>
+                                </form>
                             </div>
 
                             {{-- Report modal --}}
-                            @auth
-                                <div id="report-modal-{{ $photo->id }}" data-modal class="hidden fixed inset-0 z-50 items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
+                            <div id="report-modal-{{ $photo->id }}" data-modal class="hidden fixed inset-0 z-50 items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
                                     <div role="dialog" aria-modal="true" aria-labelledby="report-title-{{ $photo->id }}" class="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white shadow-2xl">
                                         <div class="flex items-start justify-between gap-4 border-b border-slate-100 p-5">
                                             <div>
@@ -215,9 +196,8 @@
                                                 </button>
                                             </div>
                                         </form>
-                                    </div>
                                 </div>
-                            @endauth
+                            </div>
                         </article>
                     @endforeach
                 </div>

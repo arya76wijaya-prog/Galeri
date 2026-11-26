@@ -48,9 +48,7 @@ class Album extends Model
                 $album->slug = $slug;
             }
 
-            $album->status = 'published';
-
-            if (empty($album->published_at)) {
+            if ($album->status === 'published' && empty($album->published_at)) {
                 $album->published_at = now();
             }
         });

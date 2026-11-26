@@ -69,7 +69,7 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
-            'role' => ['required', Rule::in(['admin'])],
+            'role' => ['required', Rule::in($user->is(auth()->user()) ? ['admin', 'user'] : ['admin'])],
             'status' => ['required', Rule::in(['active', 'inactive'])],
         ], [
             'name.required' => 'Nama wajib diisi.',

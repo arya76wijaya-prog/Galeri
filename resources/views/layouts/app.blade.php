@@ -16,8 +16,8 @@
     <header class="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur">
         <nav class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8" aria-label="Navigasi utama">
             <a href="{{ route('home') }}" class="flex items-center gap-2 font-semibold text-slate-900">
-                <span class="grid size-9 place-items-center rounded-xl bg-brand-600 text-white shadow-sm">
-                    <i data-lucide="images" class="size-5"></i>
+                <span class="grid size-9 shrink-0 place-items-center overflow-hidden rounded-xl bg-white shadow-sm">
+                    <img src="/images/logo-dwiguna.webp" alt="Logo SMK TI Dwiguna" class="size-full object-contain">
                 </span>
                 <span class="text-lg tracking-tight">Galeri<span class="text-brand-600">Sekolah</span></span>
             </a>

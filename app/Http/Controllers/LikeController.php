@@ -9,13 +9,40 @@ class LikeController extends Controller
 {
     public function store(Photo $photo, Request $request)
     {
-        $photo->likes()->firstOrCreate(['user_id' => auth()->user()?->id]);
+        $userId = auth()->id();
+        $sessionId = $request->session()->getId();
+
+        $exists = $photo->likes()
+            ->where(function ($q) use ($userId, $sessionId) {
+                if ($userId) {
+                    $q->where('user_id', $userId);
+                } else {
+                    $q->where('session_id', $sessionId);
+                }
+            })
+            ->exists();
+
+        if (! $exists) {
+            $photo->likes()->create([
+                'user_id' => $userId,
+                'session_id' => $sessionId,
+            ]);
+        }
 
         $likesCount = $photo->likes()->count();
+        $liked = $photo->likes()
+            ->where(function ($q) use ($userId, $sessionId) {
+                if ($userId) {
+                    $q->where('user_id', $userId);
+                } else {
+                    $q->where('session_id', $sessionId);
+                }
+            })
+            ->exists();
 
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
-                'liked' => true,
+                'liked' => $liked,
                 'likesCount' => $likesCount,
                 'message' => 'Anda menyukai foto ini.',
             ]);
@@ -26,7 +53,18 @@ class LikeController extends Controller
 
     public function destroy(Photo $photo, Request $request)
     {
-        $photo->likes()->where('user_id', auth()->user()?->id)->delete();
+        $userId = auth()->id();
+        $sessionId = $request->session()->getId();
+
+        $photo->likes()
+            ->where(function ($q) use ($userId, $sessionId) {
+                if ($userId) {
+                    $q->where('user_id', $userId);
+                } else {
+                    $q->where('session_id', $sessionId);
+                }
+            })
+            ->delete();
 
         $likesCount = $photo->likes()->count();
 

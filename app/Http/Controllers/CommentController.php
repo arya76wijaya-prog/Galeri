@@ -19,16 +19,28 @@ class CommentController extends Controller
 
         $photo->comments()->create([
             'user_id' => auth()->id(),
+            'session_id' => $request->session()->getId(),
             'content' => $data['content'],
-            'status' => 'pending',
+            'status' => 'approved',
         ]);
 
-        return back()->with('status', 'Komentar terkirim dan menunggu moderasi admin.');
+        return back()->with('status', 'Komentar berhasil dikirim dan langsung ditampilkan.');
     }
 
-    public function destroy(Comment $comment)
+    public function destroy(Comment $comment, Request $request)
     {
-        abort_unless($comment->user_id === auth()->id() || auth()->user()->isAdmin(), 403);
+        $userId = auth()->id();
+        $sessionId = $request->session()->getId();
+
+        $canDelete = false;
+
+        if ($userId) {
+            $canDelete = $comment->user_id === $userId || auth()->user()->isAdmin();
+        } elseif ($sessionId) {
+            $canDelete = $comment->session_id === $sessionId || auth()->user()->isAdmin();
+        }
+
+        abort_unless($canDelete, 403);
 
         $comment->delete();
 

@@ -41,15 +41,36 @@ it('requires authentication to like a photo', function () {
     $this->postJson(route('photos.like', $photo))->assertRedirect(route('login'));
 });
 
-it('stores comments as pending for moderator approval', function () {
-    $user = User::factory()->create();
+it('shows a new comment to other users immediately', function () {
+    $author = User::factory()->create();
     $photo = Photo::factory()->create();
 
-    $this->actingAs($user)
+    $this->actingAs($author)
         ->post(route('comments.store', $photo), ['content' => 'Komentar dari siswa'])
         ->assertRedirect();
 
-    expect(Comment::first()->status)->toBe('pending');
+    expect(Comment::first()->status)->toBe('approved');
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('gallery.show', $photo->album))
+        ->assertOk()
+        ->assertSee('Komentar dari siswa')
+        ->assertSee($author->name);
+});
+
+it('allows multiple comments from the same session on a photo', function () {
+    $author = User::factory()->create();
+    $photo = Photo::factory()->create();
+
+    $this->actingAs($author)
+        ->post(route('comments.store', $photo), ['content' => 'Komentar pertama'])
+        ->assertRedirect();
+
+    $this->actingAs($author)
+        ->post(route('comments.store', $photo), ['content' => 'Komentar kedua'])
+        ->assertRedirect();
+
+    expect(Comment::where('photo_id', $photo->id)->count())->toBe(2);
 });
 
 it('lets an admin approve a pending comment', function () {

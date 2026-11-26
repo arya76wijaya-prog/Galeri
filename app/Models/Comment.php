@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['user_id', 'photo_id', 'content', 'status'])]
+#[Fillable(['user_id', 'session_id', 'photo_id', 'content', 'status'])]
 class Comment extends Model
 {
     use HasFactory;
@@ -16,6 +16,17 @@ class Comment extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function scopeByUserOrSession($query, $userId, $sessionId)
+    {
+        return $query->where(function ($q) use ($userId, $sessionId) {
+            if ($userId) {
+                $q->where('user_id', $userId);
+            } elseif ($sessionId) {
+                $q->where('session_id', $sessionId);
+            }
+        });
     }
 
     public function photo(): BelongsTo

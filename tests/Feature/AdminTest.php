@@ -45,6 +45,26 @@ it('lets an admin create an album with a cover', function () {
     Storage::disk('public')->assertExists($album->cover_photo);
 });
 
+it('lets an admin change an album publication status', function () {
+    $admin = User::factory()->admin()->create();
+    $album = Album::factory()->create([
+        'title' => 'Album yang Diarsipkan',
+        'status' => 'published',
+    ]);
+
+    $this->actingAs($admin)
+        ->put(route('admin.albums.update', $album), [
+            'title' => $album->title,
+            'status' => 'draft',
+        ])
+        ->assertRedirect(route('admin.albums.index'));
+
+    expect($album->fresh()->status)->toBe('draft');
+
+    $this->get(route('gallery.index'))
+        ->assertDontSee($album->title);
+});
+
 it('lets an admin upload multiple photos at once', function () {
     $admin = User::factory()->admin()->create();
     $album = Album::factory()->create();
@@ -60,7 +80,12 @@ it('lets an admin upload multiple photos at once', function () {
         ])
         ->assertRedirect();
 
-    expect(Photo::where('album_id', $album->id)->count())->toBe(2);
+    $photos = Photo::where('album_id', $album->id)->get();
+
+    expect($photos)->toHaveCount(2);
+    Storage::disk('public')->assertExists($photos->first()->image_path);
+    expect($photos->first()->image_url)
+        ->toStartWith('/storage/photos/album-'.$album->id.'/');
 });
 
 it('lets an admin resolve a report', function () {

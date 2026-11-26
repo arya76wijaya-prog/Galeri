@@ -9,7 +9,20 @@ class ReportController extends Controller
 {
     public function store(Request $request, Photo $photo)
     {
-        if ($photo->reports()->where('user_id', auth()->id())->exists()) {
+        $userId = auth()->id();
+        $sessionId = $request->session()->getId();
+
+        $exists = $photo->reports()
+            ->where(function ($q) use ($userId, $sessionId) {
+                if ($userId) {
+                    $q->where('user_id', $userId);
+                } else {
+                    $q->where('session_id', $sessionId);
+                }
+            })
+            ->exists();
+
+        if ($exists) {
             return back()->with('error', 'Anda sudah melaporkan foto ini.');
         }
 
@@ -22,7 +35,8 @@ class ReportController extends Controller
         ]);
 
         $photo->reports()->create([
-            'user_id' => auth()->id(),
+            'user_id' => $userId,
+            'session_id' => $sessionId,
             'reason' => $data['reason'],
             'description' => $data['description'] ?? null,
             'status' => 'pending',

@@ -23,6 +23,15 @@ Route::get('/about', [HomeController::class, 'about'])->name('about');
 Route::get('/gallery', [GalleryController::class, 'index'])->name('gallery.index');
 Route::get('/gallery/{album:slug}', [GalleryController::class, 'show'])->name('gallery.show');
 
+// Photo interaction routes (accessible by guests and authenticated users)
+Route::post('/photos/{photo}/like', [LikeController::class, 'store'])->name('photos.like');
+Route::delete('/photos/{photo}/like', [LikeController::class, 'destroy'])->name('photos.unlike');
+
+Route::post('/photos/{photo}/comments', [CommentController::class, 'store'])->name('comments.store');
+Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
+
+Route::post('/photos/{photo}/reports', [ReportController::class, 'store'])->name('reports.store');
+
 // Authentication routes
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -37,14 +46,6 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->n
 Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
-
-    Route::post('/photos/{photo}/like', [LikeController::class, 'store'])->name('photos.like');
-    Route::delete('/photos/{photo}/like', [LikeController::class, 'destroy'])->name('photos.unlike');
-
-    Route::post('/photos/{photo}/comments', [CommentController::class, 'store'])->name('comments.store');
-    Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
-
-    Route::post('/photos/{photo}/reports', [ReportController::class, 'store'])->name('reports.store');
 });
 
 // Admin routes
