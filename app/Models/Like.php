@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['user_id', 'photo_id'])]
+#[Fillable(['user_id', 'visitor_id', 'photo_id'])]
 class Like extends Model
 {
     use HasFactory;

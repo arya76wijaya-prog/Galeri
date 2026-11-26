@@ -2,6 +2,7 @@
 
 use App\Models\Comment;
 use App\Models\Like;
+use App\Models\Album;
 use App\Models\Photo;
 use App\Models\Report;
 use App\Models\User;
@@ -35,10 +36,53 @@ it('does not create duplicate likes', function () {
     expect(Like::count())->toBe(1);
 });
 
-it('requires authentication to like a photo', function () {
+it('lets a guest like and unlike a photo without creating duplicates', function () {
     $photo = Photo::factory()->create();
 
-    $this->postJson(route('photos.like', $photo))->assertRedirect(route('login'));
+    $this->postJson(route('photos.like', $photo))
+        ->assertOk()
+        ->assertJson(['liked' => true, 'likesCount' => 1]);
+
+    $this->postJson(route('photos.like', $photo))
+        ->assertOk()
+        ->assertJson(['liked' => true, 'likesCount' => 1]);
+
+    expect(Like::where('photo_id', $photo->id)->whereNull('user_id')->count())->toBe(1);
+
+    $this->deleteJson(route('photos.unlike', $photo))
+        ->assertOk()
+        ->assertJson(['liked' => false, 'likesCount' => 0]);
+});
+
+it('lets a guest comment while keeping the comment pending moderation', function () {
+    $photo = Photo::factory()->create();
+
+    $this->post(route('comments.store', $photo), ['content' => 'Komentar pengunjung'])
+        ->assertRedirect();
+
+    $comment = Comment::first();
+
+    expect($comment->user_id)->toBeNull();
+    expect($comment->status)->toBe('pending');
+    expect($comment->content)->toBe('Komentar pengunjung');
+
+    $this->get(route('gallery.show', $photo->album))
+        ->assertOk()
+        ->assertSee('1 komentar')
+        ->assertSee('Komentar pengunjung');
+});
+
+it('shows like, comment, and report controls to guests', function () {
+    $album = Album::factory()->create();
+    $photo = Photo::factory()->create(['album_id' => $album->id]);
+
+    $this->get(route('gallery.show', $album))
+        ->assertOk()
+        ->assertSee(route('photos.like', $photo), false)
+        ->assertSee(route('comments.store', $photo), false)
+        ->assertSee(route('reports.store', $photo), false)
+        ->assertSee('Tulis komentar...')
+        ->assertSee('Laporkan');
 });
 
 it('stores comments as pending for moderator approval', function () {
@@ -79,5 +123,21 @@ it('stores a photo report and prevents duplicates', function () {
         ->assertSessionHas('error');
 
     expect(Report::count())->toBe(1);
+});
+
+it('lets a guest report a photo and prevents duplicate reports in the same session', function () {
+    $photo = Photo::factory()->create();
+    $payload = ['reason' => 'blurry', 'description' => 'Foto kurang jelas.'];
+
+    $this->post(route('reports.store', $photo), $payload)
+        ->assertRedirect()
+        ->assertSessionHas('status');
+
+    $this->post(route('reports.store', $photo), $payload)
+        ->assertRedirect()
+        ->assertSessionHas('error');
+
+    expect(Report::count())->toBe(1)
+        ->and(Report::first()->user_id)->toBeNull();
 });
 

@@ -3,13 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\Photo;
+use App\Support\VisitorIdentity;
 use Illuminate\Http\Request;
 
 class ReportController extends Controller
 {
     public function store(Request $request, Photo $photo)
     {
-        if ($photo->reports()->where('user_id', auth()->id())->exists()) {
+        $identityColumn = auth()->check() ? 'user_id' : 'visitor_id';
+        $identity = auth()->check() ? auth()->id() : VisitorIdentity::get($request);
+
+        if ($photo->reports()->where($identityColumn, $identity)->exists()) {
             return back()->with('error', 'Anda sudah melaporkan foto ini.');
         }
 
@@ -23,6 +27,7 @@ class ReportController extends Controller
 
         $photo->reports()->create([
             'user_id' => auth()->id(),
+            'visitor_id' => auth()->guest() ? VisitorIdentity::get($request) : null,
             'reason' => $data['reason'],
             'description' => $data['description'] ?? null,
             'status' => 'pending',

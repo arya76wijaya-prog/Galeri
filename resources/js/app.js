@@ -125,9 +125,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const data = await response.json();
                 button.dataset.liked = data.liked ? '1' : '0';
-                button.classList.toggle('text-rose-600', data.liked);
-                button.classList.toggle('text-slate-500', !data.liked);
                 button.setAttribute('aria-pressed', String(data.liked));
+
+                const icon = button.querySelector('i, svg');
+                if (icon) {
+                    icon.classList.toggle('fill-current', data.liked);
+                    icon.classList.toggle('text-rose-600', data.liked);
+                    icon.classList.toggle('text-slate-500', !data.liked);
+                }
 
                 const countTarget = document.getElementById(button.dataset.countTarget);
                 if (countTarget) countTarget.textContent = data.likesCount;

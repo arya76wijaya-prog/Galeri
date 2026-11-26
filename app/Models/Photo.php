@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Database\Factories\PhotoFactory;
+use App\Support\VisitorIdentity;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -27,11 +28,11 @@ class Photo extends Model
         return Attribute::get(function (): bool {
             $user = auth()->user();
 
-            if (! $user) {
-                return false;
+            if ($user) {
+                return $this->likes()->where('user_id', $user->id)->exists();
             }
 
-            return $this->likes()->where('user_id', $user->id)->exists();
+            return $this->likes()->where('visitor_id', VisitorIdentity::get(request()))->exists();
         });
     }
 
@@ -58,6 +59,13 @@ class Photo extends Model
     public function approvedComments(): HasMany
     {
         return $this->comments()->approved()->latest();
+    }
+
+    public function publicComments(): HasMany
+    {
+        return $this->comments()
+            ->whereIn('status', ['pending', 'approved'])
+            ->latest();
     }
 
     public function reports(): HasMany

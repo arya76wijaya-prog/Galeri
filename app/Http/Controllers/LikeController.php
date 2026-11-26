@@ -3,13 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Models\Photo;
+use App\Support\VisitorIdentity;
 use Illuminate\Http\Request;
 
 class LikeController extends Controller
 {
     public function store(Photo $photo, Request $request)
     {
-        $photo->likes()->firstOrCreate(['user_id' => auth()->user()?->id]);
+        $identity = auth()->check()
+            ? ['user_id' => auth()->id()]
+            : ['visitor_id' => VisitorIdentity::get($request)];
+
+        $photo->likes()->firstOrCreate($identity);
 
         $likesCount = $photo->likes()->count();
 
@@ -26,7 +31,10 @@ class LikeController extends Controller
 
     public function destroy(Photo $photo, Request $request)
     {
-        $photo->likes()->where('user_id', auth()->user()?->id)->delete();
+        $identityColumn = auth()->check() ? 'user_id' : 'visitor_id';
+        $identity = auth()->check() ? auth()->id() : VisitorIdentity::get($request);
+
+        $photo->likes()->where($identityColumn, $identity)->delete();
 
         $likesCount = $photo->likes()->count();
 

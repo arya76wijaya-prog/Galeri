@@ -38,7 +38,8 @@ class GalleryController extends Controller
 
         $photos = $album->photos()
             ->withCount('likes')
-            ->with(['approvedComments.user', 'uploader'])
+            ->withCount('publicComments as visible_comments_count')
+            ->with(['publicComments.user', 'uploader'])
             ->latest()
             ->paginate(12)
             ->withQueryString();
